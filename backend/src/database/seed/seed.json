@@ -1,0 +1,230 @@
+{
+  "orders": [
+    {
+      "modelo": "Volvo FH16",
+      "estado": "En Ruta",
+      "combustible": 78,
+      "temp": 85,
+      "km": 125000,
+      "chofer": "Juan Pérez",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Scania R450",
+      "estado": "Mantenimiento",
+      "combustible": 12,
+      "temp": 20,
+      "km": 340000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "MAN TGX",
+      "estado": "En Ruta",
+      "combustible": 65,
+      "temp": 78,
+      "km": 215000,
+      "chofer": "Carlos López",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Mercedes Actros",
+      "estado": "Disponible",
+      "combustible": 92,
+      "temp": 25,
+      "km": 89000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Iveco Stralis",
+      "estado": "En Ruta",
+      "combustible": 45,
+      "temp": 82,
+      "km": 456000,
+      "chofer": "Miguel García",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "DAF XF",
+      "estado": "En Ruta",
+      "combustible": 88,
+      "temp": 79,
+      "km": 178000,
+      "chofer": "Ana Martínez",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Volvo FH16",
+      "estado": "Mantenimiento",
+      "combustible": 5,
+      "temp": 18,
+      "km": 567000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Scania R500",
+      "estado": "Disponible",
+      "combustible": 100,
+      "temp": 22,
+      "km": 45000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "MAN TGX",
+      "estado": "En Ruta",
+      "combustible": 55,
+      "temp": 81,
+      "km": 289000,
+      "chofer": "Roberto Sánchez",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Mercedes Actros",
+      "estado": "En Ruta",
+      "combustible": 72,
+      "temp": 86,
+      "km": 321000,
+      "chofer": "Pedro Rodríguez",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Iveco Stralis",
+      "estado": "Disponible",
+      "combustible": 95,
+      "temp": 24,
+      "km": 76000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "DAF XF",
+      "estado": "En Ruta",
+      "combustible": 38,
+      "temp": 84,
+      "km": 412000,
+      "chofer": "Luis Fernández",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Volvo FH16",
+      "estado": "En Ruta",
+      "combustible": 68,
+      "temp": 80,
+      "km": 198000,
+      "chofer": "Francisco Torres",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Scania R450",
+      "estado": "En Ruta",
+      "combustible": 82,
+      "temp": 77,
+      "km": 234000,
+      "chofer": "Diego Herrera",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "MAN TGX",
+      "estado": "Disponible",
+      "combustible": 98,
+      "temp": 23,
+      "km": 52000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Mercedes Actros",
+      "estado": "Mantenimiento",
+      "combustible": 8,
+      "temp": 19,
+      "km": 623000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Iveco Stralis",
+      "estado": "En Ruta",
+      "combustible": 51,
+      "temp": 83,
+      "km": 367000,
+      "chofer": "Manuel Ruiz",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "DAF XF",
+      "estado": "En Ruta",
+      "combustible": 76,
+      "temp": 81,
+      "km": 156000,
+      "chofer": "Javier Moreno",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Volvo FH16",
+      "estado": "Disponible",
+      "combustible": 87,
+      "temp": 26,
+      "km": 104000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Scania R500",
+      "estado": "En Ruta",
+      "combustible": 62,
+      "temp": 79,
+      "km": 287000,
+      "chofer": "Sergio Jiménez",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "MAN TGX",
+      "estado": "En Ruta",
+      "combustible": 48,
+      "temp": 85,
+      "km": 501000,
+      "chofer": "Guillermo Vázquez",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Mercedes Actros",
+      "estado": "En Ruta",
+      "combustible": 81,
+      "temp": 82,
+      "km": 267000,
+      "chofer": "Andrés Díaz",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Iveco Stralis",
+      "estado": "En Ruta",
+      "combustible": 59,
+      "temp": 80,
+      "km": 334000,
+      "chofer": "Óscar Blanco",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "DAF XF",
+      "estado": "Disponible",
+      "combustible": 93,
+      "temp": 27,
+      "km": 68000,
+      "chofer": "N/A",
+      "tipo": "Carga Pesada"
+    },
+    {
+      "modelo": "Volvo FH16",
+      "estado": "En Ruta",
+      "combustible": 73,
+      "temp": 84,
+      "km": 423000,
+      "chofer": "Víctor Iglesias",
+      "tipo": "Carga Pesada"
+    }
+ 
+  ]
+}

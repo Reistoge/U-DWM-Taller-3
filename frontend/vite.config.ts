@@ -11,8 +11,8 @@ export default defineConfig({
       usePolling: true,
     },
   },
-  
-   resolve: {
+  // Add this to resolve module conflicts
+  resolve: {
     dedupe: ['react', 'react-dom', 'vite']
   }
 })

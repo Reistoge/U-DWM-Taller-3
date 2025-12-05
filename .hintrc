@@ -3,6 +3,16 @@
     "development"
   ],
   "hints": {
-    "disown-opener": "off"
+    "disown-opener": "off",
+    "axe/name-role-value": "off",
+    "axe/forms": [
+      "default",
+      {
+        "select-name": "off"
+      }
+    ],
+    "typescript-config/is-valid": "off",
+    "typescript-config/consistent-casing": "off",
+    "typescript-config/strict": "off"
   }
 }

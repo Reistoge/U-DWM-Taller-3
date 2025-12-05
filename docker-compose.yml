@@ -11,6 +11,7 @@ services:
         environment:
             MONGO_INITDB_ROOT_USERNAME: reist
             MONGO_INITDB_ROOT_PASSWORD: password1234
+            
     backend:
         build: ./backend
         container_name: U-DWMT3-backend
