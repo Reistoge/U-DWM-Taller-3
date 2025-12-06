@@ -6,14 +6,12 @@ import { Document } from 'mongoose';
 // ----------------------
 export type VehicleDocument = Vehicle & Document;
 
-@Schema({ timestamps: true }) // timestamps agrega createdAt y updatedAt automáticamente
+@Schema({ timestamps: true })
 export class Vehicle {
- 
-
   @Prop({ required: true })
   modelo: string;
 
-  @Prop({ required: true, index: true }) // Indexado para filtros rápidos
+  @Prop({ required: true, index: true })
   estado: string;
 
   @Prop({ required: true })
@@ -31,48 +29,59 @@ export class Vehicle {
   @Prop({ required: true })
   tipo: string;
 
-  // Guardamos la fecha real, el frontend la formatea a "10:05 AM"
-  @Prop({ default: Date.now }) 
-  lastUpdate: Date; 
+  @Prop({ default: Date.now })
+  lastUpdate: Date;
+
+  // NEW: Track week start date for grouping
+  @Prop({ default: () => getWeekStart(new Date()) })
+  weekStart: Date;
+
+  // NEW: Weekly KM for that week
+  @Prop({ default: 0 })
+  weeklyKm: number;
 }
 
 export const VehicleSchema = SchemaFactory.createForClass(Vehicle);
 
-// // ----------------------
-// // 2. Esquema para Historial (HistoryEntry)
-// // ----------------------
-// export type HistoryDocument = HistoryMetric & Document;
+// ----------------------
+// 2. Esquema para Historial Semanal (Weekly History)
+// ----------------------
+export type HistoryDocument = FleetHistory & Document;
 
-// @Schema()
-// export class HistoryMetric {
-//   @Prop({ required: true })
-//   name: string; // Ej: "Lun", "Mar" (O podrías usar Date real)
+@Schema({ timestamps: true })
+export class FleetHistory {
+  @Prop({ required: true, index: true })
+  weekStart: Date; // Lunes de esa semana
 
-//   @Prop({ required: true })
-//   km: number;
+  @Prop({ required: true })
+  weekEnd: Date; // Domingo de esa semana
 
-//   @Prop({ required: true })
-//   costo: number;
-// }
+  @Prop({ required: true })
+  dayOfWeek: string; // "Lun", "Mar", etc.
 
-// export const HistorySchema = SchemaFactory.createForClass(HistoryMetric);
+  @Prop({ required: true })
+  totalKm: number; // KM total ese día
+
+  @Prop({ required: true })
+  totalCost: number; // Costo ese día (KM * 0.8)
+
+  @Prop({ default: 0 })
+  vehicleCount: number; // Cantidad de vehículos activos ese día
+}
+
+export const HistorySchema = SchemaFactory.createForClass(FleetHistory);
 
 // ----------------------
-// 3. Esquema para Radar (RadarEntry)
+// Helper: Get Monday of current week
 // ----------------------
-// Nota: Este es compatible con tu archivo fleet-performance.schema.ts
-// export type RadarDocument = RadarMetric & Document;
+export function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+  return new Date(d.setDate(diff));
+}
 
-// @Schema()
-// export class RadarMetric {
-//   @Prop({ required: true, unique: true }) // Unique para no repetir "Velocidad"
-//   subject: string; 
-
-//   @Prop({ required: true })
-//   A: number; // El puntaje actual
-
-//   @Prop({ required: true, default: 150 })
-//   fullMark: number;
-// }
-
-// export const RadarSchema = SchemaFactory.createForClass(RadarMetric);
+export function getDayName(date: Date): string {
+  const days = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+  return days[date.getDay()];
+}

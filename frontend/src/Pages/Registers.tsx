@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchDashboardData, type Order } from "../features/orders/ordersSlice";
+import {
+  fetchDashboardData,
+  type Vehicle,
+} from "../features/orders/ordersSlice";
 import type { RootState, AppDispatch } from "../store";
 import { Activity, MapPin, Fuel, X, ChevronRight } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import SearchComponent from "../components/SearchComponent";
 
- 
 const DetailView = ({ item, onClose }: any) => {
+  console.log({ ...item });
   if (!item) return null;
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
@@ -81,6 +84,18 @@ const DetailView = ({ item, onClose }: any) => {
               </span>
             </div>
             <div className="flex justify-between items-center py-2">
+              <span className="text-slate-600">Kilometraje Semanal</span>
+              <span className="font-mono font-bold text-slate-700">
+                {item.weeklyKm?.toLocaleString() || 0} km
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-slate-600">Semana de inicio</span>
+              <span className="font-mono font-bold text-slate-700">
+              {item.weekStart ? new Date(item.weekStart).toLocaleDateString() : "N/A"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
               <span className="text-slate-600">Conductor Asignado</span>
               <span className="font-medium text-slate-800">{item.chofer}</span>
             </div>
@@ -99,12 +114,12 @@ const DetailView = ({ item, onClose }: any) => {
 
 function Registers() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Order>();
+  const [selectedItem, setSelectedItem] = useState<Vehicle>();
   const [filterText, setFilterText] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
 
   const dispatch = useDispatch<AppDispatch>();
-  const orders = useSelector((state: RootState) => state.orders.orders);
+  const orders = useSelector((state: RootState) => state.orders.vehicles);
   const historyData = useSelector(
     (state: RootState) => state.orders.historyData
   );
@@ -127,7 +142,6 @@ function Registers() {
     });
   }, [orders, filterText, statusFilter]);
 
- 
   return (
     <div className="flex bg-slate-50 text-slate-800 font-sans min-h-screen">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />

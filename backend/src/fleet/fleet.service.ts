@@ -1,24 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Vehicle, VehicleDocument } from './schemas/fleet.schemas';
+import { Vehicle, VehicleDocument, FleetHistory, getWeekStart, getDayName, HistoryDocument } from './schemas/fleet.schemas';
 import { CreateVehicleDto } from './dto/create-fleet.dto';
 
 @Injectable()
 export class FleetService {
   constructor(
     @InjectModel(Vehicle.name) private vehicleModel: Model<VehicleDocument>,
- 
-  ) {}
-
-  // --- OBTENER DATOS (READ & CALCULATE) ---
+    @InjectModel(FleetHistory.name) private historyModel: Model<HistoryDocument>,
+  ) { }
 
   async getDashboardData() {
-    // 1. Obtenemos SOLO los vehículos (Fuente de la verdad)
-    const orders = await this.vehicleModel.find().exec();
+    const vehicles = await this.vehicleModel.find().exec();
 
-    // 2. Formateamos los vehículos para el frontend
-    const formattedOrders = orders.map(v => ({
+    const formattedOrders = vehicles.map(v => ({
       id: v._id.toString(),
       modelo: v.modelo,
       estado: v.estado,
@@ -28,53 +24,152 @@ export class FleetService {
       chofer: v.chofer,
       tipo: v.tipo,
       lastUpdate: v.lastUpdate ? v.lastUpdate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+
+      weekStart: v.weekStart,
+      weeklyKm: v.weeklyKm,
+
     }));
 
-    // 3. CÁLCULO DINÁMICO DEL RADAR
-    // Se recalcula cada vez que se pide el dashboard
-    const radarData = this.calculateFleetMetrics(orders);
-
-    // 4. CÁLCULO DINÁMICO DEL HISTORIAL
-    // En lugar de leer una tabla estática, generamos una proyección basada en el KM actual.
-    // Esto asegura que si editas un vehículo, el historial "crece" o se ajusta acorde.
-    const historyData = this.calculateDynamicHistory(orders);
+    const radarData = this.calculateFleetMetrics(vehicles);
+    const historyData = await this.getWeeklyHistory();
 
     return {
-      orders: formattedOrders,
-      historyData, 
+      vehicles: formattedOrders,
+      historyData,
       radarData
     };
   }
 
-  // --- ACTUALIZAR DATOS (UPDATE) ---
+  async updateVehicle(id: string, updateData: any, recordDate?: Date): Promise<Vehicle> {
+    const oldVehicle = await this.vehicleModel.findById(id).exec();
 
-  async updateVehicle(id: string, updateData: any): Promise<Vehicle> {
+    if (!oldVehicle) throw new NotFoundException(`Vehículo con ID ${id} no encontrado`);
+
+    // Calculate KM difference for this week - always positive (new km should be higher)
+    const weekStart = this.getNormalizedWeekStart(new Date());
+    const newKm = updateData.km || 0;
+    const oldKm = oldVehicle?.km || 0;
+    const kmDifference = Math.max(0, newKm - oldKm); // Ensure positive
+
     const updatedVehicle = await this.vehicleModel.findByIdAndUpdate(
-      id, 
-      { ...updateData, lastUpdate: new Date() }, // Actualizamos fecha automáticamente
-      { new: true } // Retorna el objeto ya actualizado
+      id,
+      {
+        ...updateData,
+        lastUpdate: new Date(),
+        weekStart,
+        weeklyKm: (oldVehicle?.weeklyKm || 0) + kmDifference,
+      },
+      { new: true }
     ).exec();
 
     if (!updatedVehicle) throw new NotFoundException(`Vehículo con ID ${id} no encontrado`);
-    
+
+    // Record in history only if there's a positive change
+    if (kmDifference > 0) {
+      await this.recordHistoryEntry(kmDifference, recordDate);
+    }
+
     return updatedVehicle;
   }
 
-  // --- LÓGICA DE NEGOCIO (KPIS) ---
+  /**
+   * Normalize date to start of day (00:00:00) in local timezone
+   */
+  private getNormalizedDate(date: Date): Date {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  /**
+   * Get week start (Monday) normalized to start of day
+   */
+  private getNormalizedWeekStart(date: Date): Date {
+    const normalized = this.getNormalizedDate(date);
+    const day = normalized.getDay();
+    const diff = normalized.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(normalized.setDate(diff));
+  }
+
+  /**
+   * Get day name from a specific date (0=Monday, 6=Sunday)
+   */
+  private getDayOfWeekName(date: Date): string {
+    const normalized = this.getNormalizedDate(date);
+    const days = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']; // Monday=0, Sunday=6
+    const dayIndex = (normalized.getDay() + 6) % 7; // Convert JS day (0=Sun) to our system (0=Mon)
+    return days[dayIndex];
+  }
+
+  private async recordHistoryEntry(kmDifference: number, recordDate?: Date): Promise<void> {
+    const dateToRecord = recordDate ? new Date(recordDate) : new Date();
+    const weekStartDate = this.getNormalizedWeekStart(dateToRecord);
+    const dayName = this.getDayOfWeekName(dateToRecord);
+
+    const weekEnd = new Date(weekStartDate);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    console.log(`Recording history: Day=${dayName}, KmDiff=${kmDifference}, WeekStart=${weekStartDate.toISOString()}, RecordDate=${dateToRecord.toDateString()}`);
+
+    // Find or create history entry for the specified day
+    const existingEntry = await this.historyModel.findOne({
+      dayOfWeek: dayName,
+      weekStart: weekStartDate,
+    }).exec();
+
+    if (existingEntry) {
+      console.log(`Found existing entry for ${dayName}, updating km from ${existingEntry.totalKm} to ${existingEntry.totalKm + kmDifference}`);
+      existingEntry.totalKm += kmDifference;
+      existingEntry.totalCost = existingEntry.totalKm * 0.8;
+      await existingEntry.save();
+    } else {
+      console.log(`Creating new history entry for ${dayName}`);
+      await this.historyModel.create({
+        weekStart: weekStartDate,
+        weekEnd,
+        dayOfWeek: dayName,
+        totalKm: kmDifference,
+        totalCost: kmDifference * 0.8,
+        vehicleCount: await this.vehicleModel.countDocuments(),
+      });
+    }
+  }
+
+  private async getWeeklyHistory() {
+    const weekStartDate = this.getNormalizedWeekStart(new Date());
+
+    const history = await this.historyModel
+      .find({
+        weekStart: weekStartDate,
+      })
+      .sort({ dayOfWeek: 1 })
+      .exec();
+
+    console.log(`Found ${history.length} history entries for week starting ${weekStartDate.toISOString()}`);
+
+    // Days in order: Lun, Mar, Mie, Jue, Vie, Sab, Dom
+    const days = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+    return days.map(day => {
+      const found = history.find((h: any) => h.dayOfWeek === day);
+      return {
+        name: day,
+        km: found?.totalKm || 0,
+        costo: found?.totalCost || 0,
+      };
+    });
+  }
 
   private calculateFleetMetrics(vehicles: Vehicle[]) {
     const total = vehicles.length || 1;
-    
-    // Filtros
+
     const enRuta = vehicles.filter(v => v.estado === 'En Ruta').length;
     const enMantenimiento = vehicles.filter(v => v.estado === 'Mantenimiento').length;
     const conIncidencia = vehicles.filter(v => v.estado === 'Incidencia').length;
-    
-    // Promedios
+
     const avgCombustible = vehicles.reduce((acc, curr) => acc + curr.combustible, 0) / total;
     const avgTemp = vehicles.reduce((acc, curr) => acc + curr.temp, 0) / total;
 
-    // Fórmulas
     const scoreDisponibilidad = Math.round((enRuta / total) * 150);
     const scoreMantenimiento = Math.round(150 * (1 - (enMantenimiento / total)));
     const scoreSeguridad = Math.round(150 * (1 - (conIncidencia / total)));
@@ -90,30 +185,6 @@ export class FleetService {
     ];
   }
 
-  private calculateDynamicHistory(vehicles: Vehicle[]) {
-    // Calculamos el KM total actual de la flota
-    const currentTotalKm = vehicles.reduce((sum, v) => sum + v.km, 0);
-    const currentTotalCost = currentTotalKm * 0.8; // Costo teórico acumulado
-
-    const days = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
-    
-    // Generamos una curva hacia atrás. 
-    // Asumimos que hoy (último día) es el valor actual, y restamos un estimado diario hacia atrás.
-    return days.map((day, index) => {
-      const daysBack = days.length - 1 - index;
-      // Simulamos que la flota hace aprox 5% del total de KM por día
-      const factor = 1 - (daysBack * 0.05); 
-      
-      return {
-        name: day,
-        km: Math.round(currentTotalKm * factor),
-        costo: Math.round(currentTotalCost * factor)
-      };
-    });
-  }
-
- 
-
   async createVehicle(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
     const newVehicle = new this.vehicleModel(createVehicleDto);
     return newVehicle.save();
@@ -121,14 +192,36 @@ export class FleetService {
 
   async seedDatabase(data: { orders: CreateVehicleDto[] }) {
     await this.vehicleModel.deleteMany({});
-     
-    const vehiclesToInsert = data.orders.map(({...rest}) => ({
-        ...rest,
-        lastUpdate: new Date()
+    await this.historyModel.deleteMany({});
+
+    const vehiclesToInsert = data.orders.map(({ ...rest }) => ({
+      ...rest,
+      lastUpdate: new Date(),
+      weekStart: this.getNormalizedWeekStart(new Date()),
+      weeklyKm: rest.km,
     }));
-    
+
     await this.vehicleModel.insertMany(vehiclesToInsert);
 
-    return { message: 'Vehículos sembrados. Métricas configuradas para cálculo dinámico.' };
+    // Initialize history with zeros for all days of current week
+    const weekStartDate = this.getNormalizedWeekStart(new Date());
+    const days = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+
+    for (const day of days) {
+      const weekEnd = new Date(weekStartDate);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      await this.historyModel.create({
+        weekStart: weekStartDate,
+        weekEnd,
+        dayOfWeek: day,
+        totalKm: 0,
+        totalCost: 0,
+        vehicleCount: vehiclesToInsert.length,
+      });
+    }
+
+    return { message: 'Vehículos sembrados con historial semanal inicializado.' };
   }
 }

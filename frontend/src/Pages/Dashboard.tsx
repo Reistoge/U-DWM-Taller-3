@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchDashboardData, type Order } from "../features/orders/ordersSlice";
+import { fetchDashboardData, type Vehicle } from "../features/orders/ordersSlice";
 import type { RootState, AppDispatch } from "../store";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -26,7 +26,6 @@ import {
   PolarRadiusAxis,
 } from "recharts";
 import SearchComponent from "../components/SearchComponent";
- 
 
 const CHART_COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
@@ -54,12 +53,12 @@ const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
 
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Order>();
+  const [selectedItem, setSelectedItem] = useState<Vehicle>();
   const [filterText, setFilterText] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
 
   const dispatch = useDispatch<AppDispatch>();
-  const orders = useSelector((state: RootState) => state.orders.orders);
+  const orders = useSelector((state: RootState) => state.orders.vehicles);
   const historyData = useSelector(
     (state: RootState) => state.orders.historyData
   );
@@ -103,17 +102,18 @@ function Dashboard() {
   }));
 
   const totalKm = filteredData.reduce((acc, curr) => acc + curr.km, 0);
-  const totalKmFormatted = totalKm > 1000000 
-    ? (totalKm / 1000000).toFixed(1) + 'M' 
-    : totalKm > 1000 
-    ? (totalKm / 1000).toFixed(1) + 'K' 
-    : totalKm.toString();
+  const totalKmFormatted =
+    totalKm > 1000000
+      ? (totalKm / 1000000).toFixed(1) + "M"
+      : totalKm > 1000
+        ? (totalKm / 1000).toFixed(1) + "K"
+        : totalKm.toString();
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <main className="flex-1 flex flex-col overflow-hidden">
-      <Topbar setSidebarOpen={setSidebarOpen} />
+        <Topbar setSidebarOpen={setSidebarOpen} />
         {loading && <div className="p-4">Cargando datos...</div>}
         {error && <div className="p-4 text-red-500">{error}</div>}
         {/* Scrollable Content */}
@@ -129,37 +129,11 @@ function Dashboard() {
               </p>
             </div>
 
-            {/* <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-lg shadow-sm border border-slate-200">
-              <div className="relative">
-                <Search
-                  className="absolute left-3 top-2.5 text-slate-400"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  placeholder="Buscar unidad..."
-                  className="pl-10 pr-4 py-2 bg-slate-50 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
-                  value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
-                />
-              </div>
-              <select
-                className="px-4 py-2 bg-slate-50 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 border-none cursor-pointer"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="Todos">Todos los estados</option>
-                <option value="En Ruta">En Ruta</option>
-                <option value="Disponible">Disponible</option>
-                <option value="Mantenimiento">Mantenimiento</option>
-              </select>
-            </div> */}
-
             <SearchComponent
-                filterText={filterText}
-                setFilterText={setFilterText}
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
+              filterText={filterText}
+              setFilterText={setFilterText}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
             />
           </div>
 

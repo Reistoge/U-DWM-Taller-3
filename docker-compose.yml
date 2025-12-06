@@ -12,16 +12,16 @@ services:
             MONGO_INITDB_ROOT_USERNAME: reist
             MONGO_INITDB_ROOT_PASSWORD: password1234
             
-    backend:
-        build: ./backend
-        container_name: U-DWMT3-backend
-        restart: unless-stopped
-        ports:
-            - "5000:5000"
-        env_file:
-            - ./backend/.env
-        depends_on:
-            - mongodb
+    # backend:
+    #     build: ./backend
+    #     container_name: U-DWMT3-backend
+    #     restart: unless-stopped
+    #     ports:
+    #         - "5000:5000"
+    #     env_file:
+    #         - ./backend/.env
+    #     depends_on:
+    #         - mongodb
 
     # frontend:
     #     build:

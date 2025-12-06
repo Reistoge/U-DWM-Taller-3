@@ -18,8 +18,7 @@ export class FleetController {
     return this.fleetService.createVehicle(createVehicleDto);
   }
 
- 
- 
+
   @Patch('vehicle/:id')
   async updateVehicle(@Param('id') id: string, @Body() updateData: UpdateVehicleDto) {
     return this.fleetService.updateVehicle(id, updateData);

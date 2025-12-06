@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { AppDispatch } from '../../store';
 
-export type Order = {
+export type Vehicle = {
     id: string
     modelo: string
     estado: string
@@ -10,6 +10,8 @@ export type Order = {
     km: number,
     chofer: string
     tipo: string
+    weekStart: Date;
+    weeklyKm: number;
     lastUpdate: string
 };
 
@@ -26,7 +28,7 @@ export type RadarEntry = {
 };
 
 interface OrdersState {
-    orders: Order[];
+    vehicles: Vehicle[];
     historyData: HistoryEntry[];
     radarData: RadarEntry[];
     loading: boolean;
@@ -34,20 +36,22 @@ interface OrdersState {
 }
 
 const initialState: OrdersState = {
-    orders: [],
+    vehicles: [],
     historyData: [],
     radarData: [],
     loading: false,
     error: null,
 };
 
-const MOCK_ORDERS: Order[] = [
-    { id: 'V-001', modelo: 'Volvo FH16', estado: 'En Ruta', combustible: 78, temp: 85, km: 125000, chofer: 'Juan Pérez', tipo: 'Carga Pesada', lastUpdate: '10:05 AM' },
-    { id: 'V-002', modelo: 'Scania R450', estado: 'Mantenimiento', combustible: 12, temp: 20, km: 340000, chofer: 'N/A', tipo: 'Carga Pesada', lastUpdate: '08:00 AM' },
-    { id: 'V-003', modelo: 'Mercedes Actros', estado: 'En Ruta', combustible: 45, temp: 88, km: 98000, chofer: 'Ana Gómez', tipo: 'Refrigerado', lastUpdate: '10:15 AM' },
-    { id: 'V-004', modelo: 'Iveco Stralis', estado: 'Disponible', combustible: 100, temp: 25, km: 12000, chofer: 'Carlos Ruiz', tipo: 'Reparto Urbano', lastUpdate: '09:30 AM' },
-    { id: 'V-005', modelo: 'Volvo FH16', estado: 'En Ruta', combustible: 30, temp: 92, km: 210000, chofer: 'Luisa Mora', tipo: 'Carga Pesada', lastUpdate: '10:10 AM' },
-    { id: 'V-006', modelo: 'Ford F-Max', estado: 'Incidencia', combustible: 60, temp: 105, km: 150000, chofer: 'Pedro Dias', tipo: 'Refrigerado', lastUpdate: '10:00 AM' },
+const MOCK_ORDERS: Vehicle[] = [
+    { id: 'V-001', modelo: 'Volvo FH16', estado: 'En Ruta', combustible: 78, temp: 85, km: 125000, chofer: 'Juan Pérez', tipo: 'Carga Pesada', weekStart: new Date(), weeklyKm: 2400, lastUpdate: '10:05 AM' },
+    { id: 'V-002', modelo: 'Scania R450', estado: 'Mantenimiento', combustible: 12, temp: 20, km: 340000, chofer: 'N/A', tipo: 'Carga Pesada', weekStart: new Date(), weeklyKm: 1200, lastUpdate: '08:00 AM' },
+    { id: 'V-003', modelo: 'Mercedes Actros', estado: 'En Ruta', combustible: 45, temp: 88, km: 98000, chofer: 'Ana Gómez', tipo: 'Refrigerado', weekStart: new Date(), weeklyKm: 3100, lastUpdate: '10:15 AM' },
+    { id: 'V-004', modelo: 'Iveco Stralis', estado: 'Disponible', combustible: 100, temp: 25, km: 12000, chofer: 'Carlos Ruiz', tipo: 'Reparto Urbano', weekStart: new Date(), weeklyKm: 850, lastUpdate: '09:30 AM' },
+    { id: 'V-005', modelo: 'Volvo FH16', estado: 'En Ruta', combustible: 30, temp: 92, km: 210000, chofer: 'Luisa Mora', tipo: 'Carga Pesada', weekStart: new Date(), weeklyKm: 2800, lastUpdate: '10:10 AM' },
+    { id: 'V-006', modelo: 'Ford F-Max', estado: 'Incidencia', combustible: 60, temp: 105, km: 150000, chofer: 'Pedro Dias', tipo: 'Refrigerado', weekStart: new Date(), weeklyKm: 1950, lastUpdate: '10:00 AM' },
+    { id: 'V-007', modelo: 'Renault T460', estado: 'En Ruta', combustible: 55, temp: 80, km: 175000, chofer: 'Miguel López', tipo: 'Carga Pesada', weekStart: new Date(), weeklyKm: 2650, lastUpdate: '10:20 AM' },
+    { id: 'V-008', modelo: 'DAF XF', estado: 'Disponible', combustible: 95, temp: 22, km: 45000, chofer: 'Sofia Martínez', tipo: 'Reparto Urbano', weekStart: new Date(), weeklyKm: 1100, lastUpdate: '09:45 AM' },
 ];
 
 const MOCK_HISTORY: HistoryEntry[] = [
@@ -73,7 +77,7 @@ const ordersSlice = createSlice({
     name: 'orders',
     initialState,
     reducers: {
-        setOrders(state, action: PayloadAction<Order[]>) { state.orders = action.payload; },
+        setOrders(state, action: PayloadAction<Vehicle[]>) { state.vehicles = action.payload; },
         setHistoryData(state, action: PayloadAction<HistoryEntry[]>) { state.historyData = action.payload; },
         setRadarData(state, action: PayloadAction<RadarEntry[]>) { state.radarData = action.payload; },
         setLoading(state, action: PayloadAction<boolean>) { state.loading = action.payload; },
@@ -94,11 +98,13 @@ export const fetchDashboardData = () => async (dispatch: AppDispatch) => {
             throw new Error('Network error')
         };
         const data = await res.json();
-        dispatch(setOrders(data.orders));
-        dispatch(setHistoryData(data.historyData));
-        dispatch(setRadarData(data.radarData));
+        // Backend returns: { vehicles, historyData, radarData }
+        dispatch(setOrders(data.vehicles || []));
+        dispatch(setHistoryData(data.historyData || []));
+        dispatch(setRadarData(data.radarData || []));
         dispatch(setError(null));
     } catch (err) {
+        console.error('Error fetching dashboard data:', err);
         // fallback to mock data
         dispatch(setOrders(MOCK_ORDERS));
         dispatch(setHistoryData(MOCK_HISTORY));
