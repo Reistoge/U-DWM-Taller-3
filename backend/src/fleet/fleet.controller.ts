@@ -21,7 +21,8 @@ export class FleetController {
 
   @Patch('vehicle/:id')
   async updateVehicle(@Param('id') id: string, @Body() updateData: UpdateVehicleDto) {
-    return this.fleetService.updateVehicle(id, updateData);
+    const recordDate = updateData.recordDate ? new Date(updateData.recordDate) : undefined;
+    return this.fleetService.updateVehicle(id, updateData, recordDate);
   }
  
   @Post('seed')
