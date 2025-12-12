@@ -32,6 +32,7 @@
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.2.3",
     "@nestjs/throttler": "^6.4.0",
     "bcryptjs": "^3.0.2",
     "class-validator": "^0.14.2",
@@ -71,6 +72,14 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "main.ts",
+      ".module.ts",
+      "seed.ts",
+      "faker-seed.ts",
+      ".entity.ts"
+    ],
     "moduleFileExtensions": [
       "js",
       "json",
@@ -82,7 +91,11 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/main.ts",
+      "!**/*.module.ts",
+      "!**/database/seed/**",
+      "!**/*.entity.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
