@@ -47,6 +47,9 @@ npm run faker:update
 npm run seed
 ```
 
+## API Documentation
+
+Swagger API documentation is available at `http://localhost:5000/api` once the backend is running.
 ## Project Structure
 
 - **backend** - NestJS API with MongoDB
