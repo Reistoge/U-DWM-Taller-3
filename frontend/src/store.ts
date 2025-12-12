@@ -8,7 +8,7 @@ import themeReducer from './features/themeSlice'
 
 export const store = configureStore({
   reducer: {
-    orders: ordersReducer,
+    orders: ordersReducer,  
     theme: themeReducer,
 
   },

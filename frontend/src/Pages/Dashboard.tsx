@@ -30,19 +30,16 @@ import SearchComponent from "../components/SearchComponent";
 const CHART_COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
 const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
-  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+  <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between transition-colors">
     <div>
-      <p className="text-slate-500 text-xs uppercase font-bold tracking-wider">
+      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider">
         {title}
       </p>
-      <h3 className="text-2xl font-bold text-slate-800 mt-1">{value}</h3>
+      <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">{value}</h3>
       {trend && (
-        <span
-          className={`text-xs ${trend > 0 ? "text-green-500" : "text-red-500"}`}
-        >
-          {trend > 0 ? "+" : ""}
-          {trend}% vs ayer
-        </span>
+        <p className={`text-xs mt-1 ${trend > 0 ? "text-green-500" : "text-red-500"}`}>
+          {trend > 0 ? "↑" : "↓"} {Math.abs(trend)}%
+        </p>
       )}
     </div>
     <div className={`p-3 rounded-full bg-opacity-10 ${color.bg} ${color.text}`}>
@@ -56,6 +53,7 @@ function Dashboard() {
   const [selectedItem, setSelectedItem] = useState<Vehicle>();
   const [filterText, setFilterText] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
+ 
 
   const dispatch = useDispatch<AppDispatch>();
   const orders = useSelector((state: RootState) => state.orders.vehicles);
@@ -110,34 +108,20 @@ function Dashboard() {
         : totalKm.toString();
 
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans overflow-hidden transition-colors">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <main className="flex-1 flex flex-col overflow-hidden">
         <Topbar setSidebarOpen={setSidebarOpen} />
-        {loading && <div className="p-4">Cargando datos...</div>}
-        {error && <div className="p-4 text-red-500">{error}</div>}
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-8">
-          {/* Header & Filters */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800">
-                Panel de Control
-              </h2>
-              <p className="text-slate-500">
-                Vista general de la flota en tiempo real
-              </p>
-            </div>
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6">
+          {/* Search */}
+          <SearchComponent
+            filterText={filterText}
+            setFilterText={setFilterText}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+          />
 
-            <SearchComponent
-              filterText={filterText}
-              setFilterText={setFilterText}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-            />
-          </div>
-
-          {/* KPI Cards */}
+          {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="Flota Activa"
@@ -171,76 +155,11 @@ function Dashboard() {
             />
           </div>
 
-          {/* Charts Row 1 */}
+          {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Gráfico 1: Estado de Flota (Pie) */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-              <h3 className="font-bold text-slate-700 mb-4">
-                Distribución de Estados
-              </h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={statusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {statusData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={CHART_COLORS[index % CHART_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Gráfico 2: Combustible y Temperatura (Barra Compuesta/Mixta) */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-              <h3 className="font-bold text-slate-700 mb-4">
-                Combustible vs Temperatura Motor
-              </h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={fuelData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip contentStyle={{ borderRadius: "8px" }} />
-                    <Legend />
-                    <Bar
-                      dataKey="combustible"
-                      fill="#3b82f6"
-                      radius={[4, 4, 0, 0]}
-                      name="Combustible (%)"
-                    />
-                    <Bar
-                      dataKey="temp"
-                      fill="#f97316"
-                      radius={[4, 4, 0, 0]}
-                      name="Temp (°C)"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-
-          {/* Charts Row 2 */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Gráfico 3: Área Chart (Historial) */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-2">
-              <h3 className="font-bold text-slate-700 mb-4">
-                Rendimiento Semanal (Km Recorridos)
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                Historial Semanal
               </h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -275,10 +194,39 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Gráfico 4: Radar Chart (Performance General) */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-              <h3 className="font-bold text-slate-700 mb-4">
-                Eficiencia Operativa
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                Estado de Flota
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                Métricas de Rendimiento
               </h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -300,6 +248,35 @@ function Dashboard() {
                     />
                     <Tooltip />
                   </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                Combustible y Temperatura
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={fuelData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip contentStyle={{ borderRadius: "8px" }} />
+                    <Legend />
+                    <Bar
+                      dataKey="combustible"
+                      fill="#3b82f6"
+                      radius={[4, 4, 0, 0]}
+                      name="Combustible (%)"
+                    />
+                    <Bar
+                      dataKey="temp"
+                      fill="#f97316"
+                      radius={[4, 4, 0, 0]}
+                      name="Temp (°C)"
+                    />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>

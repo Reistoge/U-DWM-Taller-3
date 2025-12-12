@@ -12,7 +12,7 @@ function SearchComponent({
   setStatusFilter: (open: string) => void;
 }) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3 bg-white dark:bg-slate-900 p-2 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+    <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-lg shadow-sm border border-slate-200 dark:bg-slate-900 dark:border-slate-700 transition">
       <div className="relative">
         <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500" size={18} />
         <input
